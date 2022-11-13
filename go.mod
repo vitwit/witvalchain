@@ -25,7 +25,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-require github.com/cosmos/interchain-security v0.2.1
+require github.com/cosmos/interchain-security v0.2.0
 
 require (
 	filippo.io/edwards25519 v1.0.0-beta.2 // indirect
