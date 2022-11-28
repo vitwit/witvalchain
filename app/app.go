@@ -86,6 +86,10 @@ import (
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
 	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+
+	"github.com/vitwit/witvalchain/x/group"
+	groupkeeper "github.com/vitwit/witvalchain/x/group/keeper"
+	groupmodule "github.com/vitwit/witvalchain/x/group/module"
 )
 
 const (
@@ -117,6 +121,7 @@ var (
 		vesting.AppModuleBasic{},
 		//router.AppModuleBasic{},
 		ibcconsumer.AppModuleBasic{},
+		groupmodule.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -171,6 +176,8 @@ type App struct { // nolint: golint
 	AuthzKeeper    authzkeeper.Keeper
 	ConsumerKeeper ibcconsumerkeeper.Keeper
 
+	GroupKeeper groupkeeper.Keeper
+
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper         capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper    capabilitykeeper.ScopedKeeper
@@ -221,7 +228,7 @@ func New(
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		capabilitytypes.StoreKey, feegrant.StoreKey, authzkeeper.StoreKey,
-		ibcconsumertypes.StoreKey,
+		ibcconsumertypes.StoreKey, group.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -373,6 +380,13 @@ func New(
 	ibcRouter.AddRoute(ibcconsumertypes.ModuleName, consumerModule)
 	app.IBCKeeper.SetRouter(ibcRouter)
 
+	groupConfig := group.DefaultConfig()
+	/*
+		Example of setting group params:
+		groupConfig.MaxMetadataLen = 1000
+	*/
+	app.GroupKeeper = groupkeeper.NewKeeper(keys[group.StoreKey], appCodec, app.MsgServiceRouter(), app.AccountKeeper, groupConfig)
+
 	// create evidence keeper with router
 	evidenceKeeper := evidencekeeper.NewKeeper(
 		appCodec,
@@ -402,6 +416,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		consumerModule,
+		groupmodule.NewAppModule(appCodec, app.GroupKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -422,6 +437,7 @@ func New(
 		evidencetypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
+		group.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 		ibcconsumertypes.ModuleName,
@@ -439,6 +455,7 @@ func New(
 		evidencetypes.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
+		group.ModuleName,
 		vestingtypes.ModuleName,
 		ibcconsumertypes.ModuleName,
 	)
@@ -463,6 +480,7 @@ func New(
 
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
+		group.ModuleName,
 		vestingtypes.ModuleName,
 		ibcconsumertypes.ModuleName,
 	)
