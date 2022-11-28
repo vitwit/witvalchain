@@ -1,0 +1,16 @@
+syntax = "proto3";
+package testdata;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/vitwit/witvalchain/testdata";
+
+
+message TableModel {
+    uint64 id       = 1;
+    string name     = 2;
+    uint64 number   = 3;
+    bytes  metadata = 4;
+  }
+  
